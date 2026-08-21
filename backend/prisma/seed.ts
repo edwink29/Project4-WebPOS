@@ -1,20 +1,33 @@
-import { prisma } from "../src/lib/db/prisma"; // Sesuaikan path ini dengan letak file prisma.ts Anda
+import { prisma } from "../src/lib/db/prisma";
 
 async function main() {
-  const hashedPassword = await Bun.password.hash("admin123");
-
+  // 1. Seed Admin
+  const hashedAdminPassword = await Bun.password.hash("admin123");
   const admin = await prisma.user.upsert({
     where: { username: "admin" },
     update: {},
     create: {
       username: "admin",
-      password: hashedPassword,
+      password: hashedAdminPassword,
       name: "Administrator Toko",
       role: "ADMIN",
     },
   });
-
   console.log("✅ Seed admin berhasil:", admin.username);
+
+  // 2. Seed Kasir
+  const hashedKasirPassword = await Bun.password.hash("kasir123");
+  const kasir = await prisma.user.upsert({
+    where: { username: "kasir1" },
+    update: {},
+    create: {
+      username: "kasir1",
+      password: hashedKasirPassword,
+      name: "Kasir Toko",
+      role: "CASHIER",
+    },
+  });
+  console.log("✅ Seed kasir berhasil:", kasir.username);
 }
 
 main()
