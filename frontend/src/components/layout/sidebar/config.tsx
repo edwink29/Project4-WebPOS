@@ -27,18 +27,26 @@ export const MENU_CONFIG: MenuItem[] = [
   {
     label: "Transaksi",
     icon: <ShoppingCart size={20} />,
-    allowedRoles: ["ADMIN", "CASHIER"],
+    allowedRoles: ["ADMIN"],
     subItems: [
-      {
-        label: "Penjualan",
-        href: "/transactions/sales",
-      },
       {
         label: "Pembelian",
         href: "/transactions/purchases",
       },
     ],
   },
+  {
+    label: "Transaksi",
+    icon: <ShoppingCart size={20} />,
+    allowedRoles: ["CASHIER"],
+    subItems: [
+      {
+        label: "Penjualan",
+        href: "/transactions/sales",
+      },
+    ],
+  },
+
   // {
   //   label: "Laporan",
   //   icon: <FileText size={20} />,

@@ -1,8 +1,9 @@
-import { describe, it, expect, afterAll } from "bun:test";
+import { describe, it, expect, afterAll, beforeAll } from "bun:test";
 import {
   createTestApp,
   testRequest,
   cleanupTestData,
+  getAuthToken,
   TEST_PREFIX,
 } from "../../src/utils/test-helpers";
 
@@ -10,8 +11,13 @@ const app = createTestApp();
 
 // Variabel untuk menyimpan ID data test yang dibuat
 let createdCategoryId: string;
+let adminToken: string;
 
 describe("Category Routes — /api/categories", () => {
+  beforeAll(async () => {
+    adminToken = await getAuthToken(app, "ADMIN");
+  });
+
   afterAll(async () => {
     await cleanupTestData();
   });
@@ -25,6 +31,7 @@ describe("Category Routes — /api/categories", () => {
         body: {
           name: `${TEST_PREFIX}Elektronik`,
         },
+        token: adminToken,
       });
 
       expect(res.status).toBe(201);
@@ -45,7 +52,9 @@ describe("Category Routes — /api/categories", () => {
   // =====================================================
   describe("GET /api/categories", () => {
     it("harus mengembalikan array kategori", async () => {
-      const res = await testRequest(app, "GET", "/api/categories");
+      const res = await testRequest(app, "GET", "/api/categories", {
+        token: adminToken,
+      });
 
       expect(res.status).toBe(200);
       const data = (await res.json()) as Array<{ id: string; name: string }>;
@@ -71,6 +80,7 @@ describe("Category Routes — /api/categories", () => {
           body: {
             name: `${TEST_PREFIX}Elektronik Updated`,
           },
+          token: adminToken,
         },
       );
 
@@ -89,6 +99,7 @@ describe("Category Routes — /api/categories", () => {
         app,
         "DELETE",
         `/api/categories/${createdCategoryId}`,
+        { token: adminToken },
       );
 
       expect(res.status).toBe(200);

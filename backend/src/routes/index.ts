@@ -15,13 +15,6 @@ export interface UserPayload {
 }
 
 export const apiRoutes = new Elysia({ prefix: "/api" })
-  .use(categoryRoutes)
-  .use(customerRoutes)
-  .use(supplierRoutes)
-  .use(productRoutes)
-  .use(orderRoutes)
-  .use(purchaseRoutes)
-  .use(authRoutes)
   .use(
     jwt({
       name: "jwt",
@@ -39,33 +32,47 @@ export const apiRoutes = new Elysia({ prefix: "/api" })
 
     return { user: (payload as unknown as UserPayload) || null };
   })
-  // Buat Macro Otorisasi
-  .macro(({ onBeforeHandle }) => ({
-    requireRole(role: "ADMIN" | "CASHIER") {
-      onBeforeHandle(
-        ({
-          user,
-          set,
-        }: {
-          user: UserPayload | null;
-          set: { status?: number | string };
-        }) => {
-          if (!user) {
-            set.status = 401;
-            return { message: "Silakan login terlebih dahulu" };
-          }
-          if (user.role !== role) {
+  .macro({
+    // "STAFF" = boleh lihat data (GET) siapa saja yang login,
+    // tapi ubah data (POST/PUT/DELETE) wajib ADMIN
+    requireRole: (role: "ADMIN" | "CASHIER" | "STAFF") => ({
+      beforeHandle({ user, set, request }: any) {
+        if (!user) {
+          set.status = 401;
+          return { message: "Silakan login terlebih dahulu" };
+        }
+
+        if (role === "STAFF") {
+          if (request.method !== "GET" && user.role !== "ADMIN") {
             set.status = 403;
-            return { message: `Akses ditolak: Hanya untuk ${role}` };
+            return { message: "Akses ditolak: Hanya untuk ADMIN" };
           }
-        },
-      );
-    },
-  }))
-  .group("/v1", (app) =>
-    app
-      .use(orderRoutes)
-      .guard({ requireRole: "ADMIN" }, (adminApp) =>
-        adminApp.use(productRoutes),
-      ),
+          return;
+        }
+
+        if (user.role !== role && user.role !== "ADMIN") {
+          set.status = 403;
+          return { message: `Akses ditolak: Hanya untuk ${role}` };
+        }
+      },
+    }),
+  })
+  .use(authRoutes)
+
+  // Master data — GET boleh ADMIN & CASHIER (lihat produk buat jualan),
+  // POST/PUT/DELETE khusus ADMIN
+  .guard({ requireRole: "STAFF" }, (staffApp) =>
+    staffApp
+      .use(categoryRoutes)
+      .use(customerRoutes)
+      .use(supplierRoutes)
+      .use(productRoutes),
+  )
+
+  // Purchase (restok) — KHUSUS ADMIN, semua method
+  .guard({ requireRole: "ADMIN" }, (adminApp) => adminApp.use(purchaseRoutes))
+
+  // Transaksi penjualan — ADMIN & CASHIER boleh akses
+  .guard({ requireRole: "CASHIER" }, (cashierApp) =>
+    cashierApp.use(orderRoutes),
   );

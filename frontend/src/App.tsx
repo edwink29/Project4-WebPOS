@@ -21,18 +21,6 @@ export default function App() {
         {/* 2. Group Route Terproteksi (Wajib Login) */}
         <Route element={<ProtectedRoute />}>
           <Route element={<MainLayout />}>
-            {/* Route yang BISA diakses KASIR & ADMIN */}
-            <Route
-              element={<ProtectedRoute allowedRoles={["ADMIN", "CASHIER"]} />}
-            >
-              <Route path="/transactions/sales" element={<OrdersPage />} />
-              <Route
-                path="/transactions/purchases"
-                element={<PurchasePage />}
-              />
-            </Route>
-
-            {/* Route KHUSUS ADMIN (Master Data & Restok) */}
             <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
               <Route path="/" element={<DashboardPage />} />
               <Route path="/dashboard" element={<DashboardPage />} />
@@ -40,6 +28,14 @@ export default function App() {
               <Route path="/categories" element={<CategoriesPage />} />
               <Route path="/customers" element={<CustomersPage />} />
               <Route path="/suppliers" element={<SuppliersPage />} />
+              <Route
+                path="/transactions/purchases"
+                element={<PurchasePage />}
+              />
+            </Route>
+
+            <Route element={<ProtectedRoute allowedRoles={["CASHIER"]} />}>
+              <Route path="/transactions/sales" element={<OrdersPage />} />
             </Route>
           </Route>
         </Route>
