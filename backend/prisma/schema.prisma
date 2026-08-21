@@ -1,0 +1,118 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  CASHIER
+}
+
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  name      String
+  role      Role     @default(CASHIER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 1. Master Data Kategori
+model Category {
+  id        String    @id @default(uuid())
+  name      String
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+// 2. Master Data Supplier
+model Supplier {
+  id        String     @id @default(uuid())
+  name      String
+  phone     String?
+  address   String?
+  purchases Purchase[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+// 3. Master Data Pelanggan
+model Customer {
+  id        String   @id @default(uuid())
+  name      String
+  phone     String?
+  address   String?
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 4. Master Data Produk (Tersedia Harga Beli & Harga Jual)
+model Product {
+  id            String         @id @default(uuid())
+  name          String
+  buyPrice      Float          // Harga Beli (modal) -> untuk hitung Laba Rugi
+  sellPrice     Float          // Harga Jual ke pelanggan
+  stock         Int            @default(0)
+  categoryId    String
+  category      Category       @relation(fields: [categoryId], references: [id])
+  orderItems    OrderItem[]
+  purchaseItems PurchaseItem[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+// 5. Transaksi Penjualan (Order)
+model Order {
+  id          String      @id @default(uuid())
+  totalAmount Float
+  payment     Float
+  change      Float
+  customerId  String?
+  customer    Customer?   @relation(fields: [customerId], references: [id])
+  items       OrderItem[]
+  createdAt   DateTime    @default(now())
+}
+
+// 6. Detail Item Penjualan
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String
+  productId String
+  quantity  Int
+  buyPrice  Float    // Menyimpan harga beli saat transaksi (mencegah fluktuasi histori laba)
+  sellPrice Float    // Menyimpan harga jual saat transaksi
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
+// 7. Transaksi Pembelian Barang (Purchase dari Supplier)
+model Purchase {
+  id          String         @id @default(uuid())
+  totalAmount Float
+  supplierId  String
+  supplier    Supplier       @relation(fields: [supplierId], references: [id])
+  items       PurchaseItem[]
+  createdAt   DateTime       @default(now())
+}
+
+// 8. Detail Item Pembelian
+model PurchaseItem {
+  id         String   @id @default(uuid())
+  purchaseId String
+  productId  String
+  quantity   Int
+  buyPrice   Float    // Harga beli saat pengadaan barang
+  purchase   Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  product    Product  @relation(fields: [productId], references: [id])
+}

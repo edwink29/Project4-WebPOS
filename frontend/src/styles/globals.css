@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+/* Definisi Warna Tema Aplikasi */
+@theme {
+  /* Warna Utama Aplikasi */
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-light: #eff6ff;
+  --color-secondary: #6366f1; /* pasangan gradient untuk avatar */
+
+  /* Warna Sidebar & Layout */
+  --color-sidebar-bg: #ffffff;
+  --color-sidebar-border: #f1f5f9;
+  --color-sidebar-text: #475569;
+  --color-sidebar-text-hover: #0f172a;
+  --color-sidebar-hover-bg: #f8fafc;
+
+  /* Warna Status */
+  --color-danger: #dc2626;
+  --color-danger-bg: #fef2f2;
+
+  /* Warna Teks General */
+  --color-brand-title: #1e293b;
+  --color-muted: #94a3b8;
+}
