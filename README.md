@@ -97,8 +97,3 @@ bun test
 > - `bun test tests/integration` : Menguji seluruh endpoint API langsung terhadap database PostgreSQL.
 
 ---
-
-## 🌐 Catatan Deployment (Production)
-
-- **Backend**: Dapat di-deploy di **Railway / Render** dengan build command `bun install` dan start command `bun start` (pastikan set `DATABASE_URL` dan `JWT_SECRET` di environment variables).
-- **Frontend**: Dapat di-deploy di **Vercel** (sudah dilengkapi file [`vercel.json`](file:///d:/Learn%20Code/Magang/backup/project4-Web-Point-of-Sale/frontend/vercel.json) untuk handling SPA routing). Set `VITE_API_BASE_URL` di Vercel menuju URL backend production Anda.
