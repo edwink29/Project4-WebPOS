@@ -79,6 +79,7 @@ Buka browser Anda di **`http://localhost:5173`**.
 | Role | Username | Password |
 |---|---|---|
 | **Admin** | `admin` | `admin123` |
+| **Cashier** | `kasir1` | `kasir123` |
 
 ---
 
