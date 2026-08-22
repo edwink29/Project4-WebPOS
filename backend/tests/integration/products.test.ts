@@ -3,6 +3,7 @@ import {
   createTestApp,
   testRequest,
   cleanupTestData,
+  getAuthToken,
   TEST_PREFIX,
 } from "../../src/utils/test-helpers";
 
@@ -11,12 +12,16 @@ const app = createTestApp();
 // Dependency: kita perlu kategori untuk membuat produk
 let testCategoryId: string;
 let createdProductId: string;
+let adminToken: string;
 
 describe("Product Routes — /api/products", () => {
   // Setup: buat kategori test sebagai dependency
   beforeAll(async () => {
+    adminToken = await getAuthToken(app, "ADMIN");
+
     const res = await testRequest(app, "POST", "/api/categories", {
       body: { name: `${TEST_PREFIX}Kategori Produk Test` },
+      token: adminToken,
     });
     const data = (await res.json()) as { id: string };
     testCategoryId = data.id;
@@ -39,6 +44,7 @@ describe("Product Routes — /api/products", () => {
           buyPrice: 5000000,
           sellPrice: 6500000,
         },
+        token: adminToken,
       });
 
       expect(res.status).toBe(201);
@@ -68,6 +74,7 @@ describe("Product Routes — /api/products", () => {
           buyPrice: 0,
           sellPrice: 0,
         },
+        token: adminToken,
       });
 
       // Elysia validation error
@@ -80,7 +87,9 @@ describe("Product Routes — /api/products", () => {
   // =====================================================
   describe("GET /api/products", () => {
     it("harus mengembalikan array produk dengan relasi category", async () => {
-      const res = await testRequest(app, "GET", "/api/products");
+      const res = await testRequest(app, "GET", "/api/products", {
+        token: adminToken,
+      });
 
       expect(res.status).toBe(200);
       const data = (await res.json()) as Array<{
@@ -106,6 +115,7 @@ describe("Product Routes — /api/products", () => {
         app,
         "GET",
         `/api/products/${createdProductId}`,
+        { token: adminToken },
       );
 
       expect(res.status).toBe(200);
@@ -121,7 +131,9 @@ describe("Product Routes — /api/products", () => {
 
     it("harus mengembalikan 404 jika produk tidak ditemukan", async () => {
       const fakeId = "00000000-0000-0000-0000-000000000000";
-      const res = await testRequest(app, "GET", `/api/products/${fakeId}`);
+      const res = await testRequest(app, "GET", `/api/products/${fakeId}`, {
+        token: adminToken,
+      });
 
       expect(res.status).toBe(404);
       const data = (await res.json()) as { message: string };
@@ -146,6 +158,7 @@ describe("Product Routes — /api/products", () => {
             buyPrice: 5200000,
             sellPrice: 6800000,
           },
+          token: adminToken,
         },
       );
 
@@ -170,6 +183,7 @@ describe("Product Routes — /api/products", () => {
         app,
         "DELETE",
         `/api/products/${createdProductId}`,
+        { token: adminToken },
       );
 
       expect(res.status).toBe(200);

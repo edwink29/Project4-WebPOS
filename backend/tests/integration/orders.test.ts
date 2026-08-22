@@ -4,6 +4,7 @@ import {
   createTestApp,
   testRequest,
   cleanupTestData,
+  getAuthToken,
   TEST_PREFIX,
 } from "../../src/utils/test-helpers";
 
@@ -14,13 +15,17 @@ let testCategoryId: string;
 let testProductId: string;
 let testCustomerId: string;
 let createdOrderId: string;
+let adminToken: string;
 
 describe("Order Routes — /api/orders", () => {
   // Setup: buat category, product, dan customer sebagai dependency
   beforeAll(async () => {
+    adminToken = await getAuthToken(app, "ADMIN");
+
     // Buat kategori
     const catRes = await testRequest(app, "POST", "/api/categories", {
       body: { name: `${TEST_PREFIX}Kategori Order Test` },
+      token: adminToken,
     });
     const catData = (await catRes.json()) as { id: string };
     testCategoryId = catData.id;
@@ -34,6 +39,7 @@ describe("Order Routes — /api/orders", () => {
         buyPrice: 10000,
         sellPrice: 15000,
       },
+      token: adminToken,
     });
     const prodData = (await prodRes.json()) as { id: string };
     testProductId = prodData.id;
@@ -44,6 +50,7 @@ describe("Order Routes — /api/orders", () => {
         name: `${TEST_PREFIX}Customer Order Test`,
         phone: "081111111111",
       },
+      token: adminToken,
     });
     const custData = (await custRes.json()) as { id: string };
     testCustomerId = custData.id;
@@ -69,6 +76,7 @@ describe("Order Routes — /api/orders", () => {
             },
           ],
         },
+        token: adminToken,
       });
 
       expect(res.status).toBe(201);
@@ -113,6 +121,7 @@ describe("Order Routes — /api/orders", () => {
             },
           ],
         },
+        token: adminToken,
       });
 
       expect(res.status).toBe(201);
@@ -136,6 +145,7 @@ describe("Order Routes — /api/orders", () => {
             },
           ],
         },
+        token: adminToken,
       });
 
       expect(res.status).toBe(400);
@@ -155,6 +165,7 @@ describe("Order Routes — /api/orders", () => {
             },
           ],
         },
+        token: adminToken,
       });
 
       expect(res.status).toBe(400);
@@ -173,6 +184,7 @@ describe("Order Routes — /api/orders", () => {
             },
           ],
         },
+        token: adminToken,
       });
 
       expect(res.status).toBe(400);
@@ -186,7 +198,9 @@ describe("Order Routes — /api/orders", () => {
   // =====================================================
   describe("GET /api/orders", () => {
     it("harus mengembalikan array order dengan relasi customer & items", async () => {
-      const res = await testRequest(app, "GET", "/api/orders");
+      const res = await testRequest(app, "GET", "/api/orders", {
+        token: adminToken,
+      });
 
       expect(res.status).toBe(200);
       const data = (await res.json()) as Array<{
@@ -216,6 +230,7 @@ describe("Order Routes — /api/orders", () => {
         app,
         "GET",
         `/api/orders/${createdOrderId}`,
+        { token: adminToken },
       );
 
       expect(res.status).toBe(200);
@@ -233,7 +248,9 @@ describe("Order Routes — /api/orders", () => {
 
     it("harus mengembalikan 404 jika order tidak ditemukan", async () => {
       const fakeId = "00000000-0000-0000-0000-000000000000";
-      const res = await testRequest(app, "GET", `/api/orders/${fakeId}`);
+      const res = await testRequest(app, "GET", `/api/orders/${fakeId}`, {
+        token: adminToken,
+      });
 
       expect(res.status).toBe(404);
       const data = (await res.json()) as { message: string };

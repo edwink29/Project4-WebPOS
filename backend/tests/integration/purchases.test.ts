@@ -4,6 +4,7 @@ import {
   createTestApp,
   testRequest,
   cleanupTestData,
+  getAuthToken,
   TEST_PREFIX,
 } from "../../src/utils/test-helpers";
 
@@ -14,6 +15,7 @@ let testCategoryId: string;
 let testProductId: string;
 let testSupplierId: string;
 let createdPurchaseId: string;
+let adminToken: string;
 
 const INITIAL_STOCK = 5;
 const INITIAL_BUY_PRICE = 8000;
@@ -21,9 +23,12 @@ const INITIAL_BUY_PRICE = 8000;
 describe("Purchase Routes — /api/purchases", () => {
   // Setup: buat category, product, dan supplier sebagai dependency
   beforeAll(async () => {
+    adminToken = await getAuthToken(app, "ADMIN");
+
     // Buat kategori
     const catRes = await testRequest(app, "POST", "/api/categories", {
       body: { name: `${TEST_PREFIX}Kategori Purchase Test` },
+      token: adminToken,
     });
     const catData = (await catRes.json()) as { id: string };
     testCategoryId = catData.id;
@@ -37,6 +42,7 @@ describe("Purchase Routes — /api/purchases", () => {
         buyPrice: INITIAL_BUY_PRICE,
         sellPrice: 12000,
       },
+      token: adminToken,
     });
     const prodData = (await prodRes.json()) as { id: string };
     testProductId = prodData.id;
@@ -47,6 +53,7 @@ describe("Purchase Routes — /api/purchases", () => {
         name: `${TEST_PREFIX}Supplier Purchase Test`,
         phone: "021-1112233",
       },
+      token: adminToken,
     });
     const supData = (await supRes.json()) as { id: string };
     testSupplierId = supData.id;
@@ -75,6 +82,7 @@ describe("Purchase Routes — /api/purchases", () => {
             },
           ],
         },
+        token: adminToken,
       });
 
       expect(res.status).toBe(201);
@@ -117,6 +125,7 @@ describe("Purchase Routes — /api/purchases", () => {
             },
           ],
         },
+        token: adminToken,
       });
 
       expect(res.status).toBe(400);
@@ -136,6 +145,7 @@ describe("Purchase Routes — /api/purchases", () => {
             },
           ],
         },
+        token: adminToken,
       });
 
       expect(res.status).toBe(400);
@@ -149,7 +159,9 @@ describe("Purchase Routes — /api/purchases", () => {
   // =====================================================
   describe("GET /api/purchases", () => {
     it("harus mengembalikan array purchase dengan relasi supplier & items", async () => {
-      const res = await testRequest(app, "GET", "/api/purchases");
+      const res = await testRequest(app, "GET", "/api/purchases", {
+        token: adminToken,
+      });
 
       expect(res.status).toBe(200);
       const data = (await res.json()) as Array<{
@@ -177,6 +189,7 @@ describe("Purchase Routes — /api/purchases", () => {
         app,
         "GET",
         `/api/purchases/${createdPurchaseId}`,
+        { token: adminToken },
       );
 
       expect(res.status).toBe(200);
@@ -194,7 +207,9 @@ describe("Purchase Routes — /api/purchases", () => {
 
     it("harus mengembalikan 404 jika purchase tidak ditemukan", async () => {
       const fakeId = "00000000-0000-0000-0000-000000000000";
-      const res = await testRequest(app, "GET", `/api/purchases/${fakeId}`);
+      const res = await testRequest(app, "GET", `/api/purchases/${fakeId}`, {
+        token: adminToken,
+      });
 
       expect(res.status).toBe(404);
       const data = (await res.json()) as { message: string };

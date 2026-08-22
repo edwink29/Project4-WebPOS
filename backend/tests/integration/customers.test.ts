@@ -1,16 +1,22 @@
-import { describe, it, expect, afterAll } from "bun:test";
+import { describe, it, expect, afterAll, beforeAll } from "bun:test";
 import {
   createTestApp,
   testRequest,
   cleanupTestData,
+  getAuthToken,
   TEST_PREFIX,
 } from "../../src/utils/test-helpers";
 
 const app = createTestApp();
 
 let createdCustomerId: string;
+let adminToken: string;
 
 describe("Customer Routes — /api/customers", () => {
+  beforeAll(async () => {
+    adminToken = await getAuthToken(app, "ADMIN");
+  });
+
   afterAll(async () => {
     await cleanupTestData();
   });
@@ -26,6 +32,7 @@ describe("Customer Routes — /api/customers", () => {
           phone: "081234567890",
           address: "Jl. Test No. 1",
         },
+        token: adminToken,
       });
 
       expect(res.status).toBe(201);
@@ -47,6 +54,7 @@ describe("Customer Routes — /api/customers", () => {
         body: {
           name: `${TEST_PREFIX}Customer Tanpa Detail`,
         },
+        token: adminToken,
       });
 
       expect(res.status).toBe(201);
@@ -61,7 +69,9 @@ describe("Customer Routes — /api/customers", () => {
   // =====================================================
   describe("GET /api/customers", () => {
     it("harus mengembalikan array customer", async () => {
-      const res = await testRequest(app, "GET", "/api/customers");
+      const res = await testRequest(app, "GET", "/api/customers", {
+        token: adminToken,
+      });
 
       expect(res.status).toBe(200);
       const data = (await res.json()) as Array<{ id: string }>;
@@ -79,6 +89,9 @@ describe("Customer Routes — /api/customers", () => {
         app,
         "GET",
         `/api/customers/${createdCustomerId}`,
+        {
+          token: adminToken,
+        },
       );
 
       expect(res.status).toBe(200);
@@ -89,11 +102,9 @@ describe("Customer Routes — /api/customers", () => {
 
     it("harus mengembalikan 404 jika customer tidak ditemukan", async () => {
       const fakeId = "00000000-0000-0000-0000-000000000000";
-      const res = await testRequest(
-        app,
-        "GET",
-        `/api/customers/${fakeId}`,
-      );
+      const res = await testRequest(app, "GET", `/api/customers/${fakeId}`, {
+        token: adminToken,
+      });
 
       expect(res.status).toBe(404);
       const data = (await res.json()) as { message: string };
@@ -116,6 +127,7 @@ describe("Customer Routes — /api/customers", () => {
             phone: "089876543210",
             address: "Jl. Update No. 2",
           },
+          token: adminToken,
         },
       );
 
@@ -139,6 +151,7 @@ describe("Customer Routes — /api/customers", () => {
         app,
         "DELETE",
         `/api/customers/${createdCustomerId}`,
+        { token: adminToken },
       );
 
       expect(res.status).toBe(200);

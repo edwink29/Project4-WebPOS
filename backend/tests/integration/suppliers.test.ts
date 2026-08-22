@@ -1,16 +1,22 @@
-import { describe, it, expect, afterAll } from "bun:test";
+import { describe, it, expect, afterAll, beforeAll } from "bun:test";
 import {
   createTestApp,
   testRequest,
   cleanupTestData,
+  getAuthToken,
   TEST_PREFIX,
 } from "../../src/utils/test-helpers";
 
 const app = createTestApp();
 
 let createdSupplierId: string;
+let adminToken: string;
 
 describe("Supplier Routes — /api/suppliers", () => {
+  beforeAll(async () => {
+    adminToken = await getAuthToken(app, "ADMIN");
+  });
+
   afterAll(async () => {
     await cleanupTestData();
   });
@@ -26,6 +32,7 @@ describe("Supplier Routes — /api/suppliers", () => {
           phone: "021-5551234",
           address: "Jl. Industri No. 10",
         },
+        token: adminToken,
       });
 
       expect(res.status).toBe(201);
@@ -46,6 +53,7 @@ describe("Supplier Routes — /api/suppliers", () => {
         body: {
           name: `${TEST_PREFIX}Supplier Minimal`,
         },
+        token: adminToken,
       });
 
       expect(res.status).toBe(201);
@@ -59,7 +67,9 @@ describe("Supplier Routes — /api/suppliers", () => {
   // =====================================================
   describe("GET /api/suppliers", () => {
     it("harus mengembalikan array supplier", async () => {
-      const res = await testRequest(app, "GET", "/api/suppliers");
+      const res = await testRequest(app, "GET", "/api/suppliers", {
+        token: adminToken,
+      });
 
       expect(res.status).toBe(200);
       const data = (await res.json()) as Array<{ id: string }>;
@@ -77,6 +87,7 @@ describe("Supplier Routes — /api/suppliers", () => {
         app,
         "GET",
         `/api/suppliers/${createdSupplierId}`,
+        { token: adminToken },
       );
 
       expect(res.status).toBe(200);
@@ -87,11 +98,9 @@ describe("Supplier Routes — /api/suppliers", () => {
 
     it("harus mengembalikan 404 jika supplier tidak ditemukan", async () => {
       const fakeId = "00000000-0000-0000-0000-000000000000";
-      const res = await testRequest(
-        app,
-        "GET",
-        `/api/suppliers/${fakeId}`,
-      );
+      const res = await testRequest(app, "GET", `/api/suppliers/${fakeId}`, {
+        token: adminToken,
+      });
 
       expect(res.status).toBe(404);
       const data = (await res.json()) as { message: string };
@@ -114,6 +123,7 @@ describe("Supplier Routes — /api/suppliers", () => {
             phone: "021-9998877",
             address: "Jl. Industri No. 20",
           },
+          token: adminToken,
         },
       );
 
@@ -132,6 +142,7 @@ describe("Supplier Routes — /api/suppliers", () => {
         app,
         "DELETE",
         `/api/suppliers/${createdSupplierId}`,
+        { token: adminToken },
       );
 
       expect(res.status).toBe(200);

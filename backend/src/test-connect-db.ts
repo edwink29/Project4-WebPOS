@@ -15,12 +15,11 @@ async function main() {
   try {
     await prisma.$connect();
 
-    // 💡 TULIS BARIS INI untuk memaksa query nyata ke PostgreSQL:
     await prisma.$queryRaw`SELECT 1`;
 
-    console.log("✅ HORE! Database berhasil terhubung!");
+    console.log("Database berhasil terhubung!");
   } catch (error) {
-    console.error("❌ GAGAL terhubung ke database:", error);
+    console.error("GAGAL terhubung ke database:", error);
   } finally {
     await prisma.$disconnect();
   }
